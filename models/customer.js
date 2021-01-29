@@ -79,6 +79,41 @@ class Customer {
       );
     }
   }
+
+  static async searchFullName(first, last) {
+    const {rows } = await db.query(`SELECT first_name, last_name FROM customers WHERE first_name = $1 AND last_name = $2`, [first, last])
+    
+    const customer = this.get(rows[0])
+
+    return 'hi'
+  }
+
+  static async searchPartialName(last) {
+    const {rows } = await db.query(`SELECT id, 
+    first_name AS "firstName",  
+    last_name AS "lastName", 
+    phone, 
+    notes
+    FROM customers WHERE last_name = $1 `, [last])
+
+    return rows.map(c => new Customer(c))
+  }
+
+  static async getTopTen() {
+    const {rows } = await db.query(`SELECT customer_id, COUNT(customer_id) FROM reservations GROUP BY customer_id ORDER BY count desc LIMIT 10;`)
+    let customers = [];
+    
+    for (let c of rows) {
+      customers.push(await this.get(c.customer_id))
+    }
+    // rows.map(async (c) => {
+    //   return await this.get(c.customer_id)
+    // })
+    console.log(rows)
+    console.log(customers)
+    return customers
+  }
+
 }
 
 module.exports = Customer;
